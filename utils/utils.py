@@ -1,5 +1,4 @@
 import os
-import numpy as np
 from torch.utils.data import Dataset
 from PIL import Image
 from glob import glob
@@ -48,10 +47,12 @@ class InferenceDataset(Dataset):
         return len(self.images)
     
     def __getitem__(self, index):
-        img_path = os.path.join(self.images_dir, self.images[index])
+        img_name = self.images[index]
+        img_path = os.path.join(self.images_dir, img_name)
 
-        image = np.array(Image.open(img_path).convert('RGB'))
+        image = Image.open(img_path).convert('RGB')
         if self.transform:
             image = self.transform(image)
-        
-        return image
+
+        # to submit to kaggle competition I need to return image name
+        return img_name, image
