@@ -13,7 +13,7 @@ class Block(nn.Module):
         :param kernel: kernel size
         :param stride: stride
         """
-        assert num_layers in [50, 101], "unknown architecture"
+        assert num_layers in [50, 101], 'unknown architecture'
 
         super().__init__()
         self.identity_downsample = identity_downsample
@@ -55,10 +55,30 @@ class Block(nn.Module):
 
 
 class MyResNet(nn.Module):
-    def __init__(self, in_features, out_features):
+    def __init__(self, num_layers, in_channels, out_channels):
+        """
+        :param num_layers: number of layers in the architecture (ResNet)
+        :param in_channels: number of input image channels
+        :param out_channels: number of output classes
+        """
+        assert num_layers in [50, 101], 'unknown architecture'
+
         super().__init__()
-        self.conv1 = Block(in_features, 32, kernel=3, stride=1, padding=0)
-        self.conv2 = Block(32, 64, kernel=3, stride=1, padding=0)
+
+        # how many times to reuse the same block in the architecture
+        if num_layers == 50:
+            self.layers = [3, 4, 6, 3]
+        elif num_layers == 101:
+            self.layers = [3, 4, 23, 3]
+        else:
+            raise NotImplementedError('unknown architecture')
+        
+        # according to the paper, the first layer is 7x7 conv with stride 2
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3),
+            nn.BatchNorm2d(64),
+            nn.ReLU()
+        )
 
     def forward(self, x):
         x = self.conv1(x)
