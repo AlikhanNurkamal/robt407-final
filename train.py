@@ -22,7 +22,7 @@ def calculate_metrics(labels, preds):
     return accuracy, precision, recall, f1
 
 
-def train(train_loader, model, loss_fn, optimizer, device):
+def train(train_loader, model, loss_fn, optimizer, epoch, device):
     model.train()
 
     all_preds = []
@@ -47,6 +47,8 @@ def train(train_loader, model, loss_fn, optimizer, device):
     
     accuracy, precision, recall, f1 = calculate_metrics(all_labels, all_preds)
     avg_loss = total_loss / len(train_loader)
+
+    print(f"Epoch {epoch} | Train Loss: {avg_loss} | F1: {f1} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall}")
     return avg_loss, accuracy, precision, recall, f1
 
 
@@ -73,12 +75,60 @@ def validate(val_loader, model, loss_fn, device):
     
     accuracy, precision, recall, f1 = calculate_metrics(all_labels, all_preds)
     avg_loss = total_loss / len(val_loader)
+
+    print(f"\tValidation Loss: {avg_loss} | F1: {f1} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall}")
     return avg_loss, accuracy, precision, recall, f1
 
 
-def argparser():
-    pass
+def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, config):# epochs=EPOCHS, patience=PATIENCE, device=DEVICE):
+    TRAIN_HISTORY = {
+        'Loss': [],
+        'Accuracy': [],
+        'Precision': [],
+        'Recall': [],
+        'F1': []
+    }
+    VAL_HISTORY = {
+        'Loss': [],
+        'Accuracy': [],
+        'Precision': [],
+        'Recall': [],
+        'F1': []
+    }
+
+    # for early stopping
+    best_f1 = 0.0
+    patience_counter = 0
+
+    for epoch in range(config['EPOCHS']):
+        loss, accuracy, precision, recall, f1 = train(train_loader, model, loss_fn, optimizer, epoch + 1, config['DEVICE'])
+        TRAIN_HISTORY['Loss'].append(loss)
+        TRAIN_HISTORY['Accuracy'].append(accuracy)
+        TRAIN_HISTORY['Precision'].append(precision)
+        TRAIN_HISTORY['Recall'].append(recall)
+        TRAIN_HISTORY['F1'].append(f1)
+
+        loss, accuracy, precision, recall, f1 = validate(val_loader, model, loss_fn, config['DEVICE'])
+        VAL_HISTORY['Loss'].append(loss)
+        VAL_HISTORY['Accuracy'].append(accuracy)
+        VAL_HISTORY['Precision'].append(precision)
+        VAL_HISTORY['Recall'].append(recall)
+        VAL_HISTORY['F1'].append(f1)
+
+        if f1 > best_f1:
+            best_f1 = f1
+            patience_counter = 0
+            torch.save(model.state_dict(), 'best_model.pth')
+        else:
+            patience_counter += 1
+            if patience_counter == config['PATIENCE']:
+                print(f"Early stopping at epoch {epoch + 1}")
+                break
+    
+    print('Training finished!')
+    return TRAIN_HISTORY, VAL_HISTORY
 
 
 def main():
-    args = argparser()
+    # args = argparser()
+    pass
