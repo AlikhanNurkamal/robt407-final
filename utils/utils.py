@@ -21,13 +21,13 @@ class CustomDataset(Dataset):
             self.images_paths.extend([image for image in images])
 
     def __len__(self):
-        return len(self.images)
+        return len(self.images_paths)
 
     def __getitem__(self, index):
         # getting the path to one image
         img_path = self.images_paths[index]
 
-        image = np.array(Image.open(img_path).convert('RGB'))
+        image = Image.open(img_path).convert('RGB')
         label = self.labels[index]
 
         if self.transform:
