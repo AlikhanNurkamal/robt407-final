@@ -135,10 +135,10 @@ class MyResNet(nn.Module):
 
 
 # in this project we have 10 classes to predict, so out_classes=10
-def ResNet50(in_channels):
-    return MyResNet(50, in_channels, out_classes=10)
+def ResNet50(in_channels=3, out_classes=10):
+    return MyResNet(50, in_channels, out_classes=out_classes)
 
 
 # in this project we have 10 classes to predict, so out_classes=10
-def ResNet101(in_channels):
-    return MyResNet(101, in_channels, out_classes=10)
+def ResNet101(in_channels=3, out_classes=10):
+    return MyResNet(101, in_channels, out_classes=out_classes)
