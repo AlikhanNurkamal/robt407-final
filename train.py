@@ -75,3 +75,10 @@ def validate(val_loader, model, loss_fn, device):
     avg_loss = total_loss / len(val_loader)
     return avg_loss, accuracy, precision, recall, f1
 
+
+def argparser():
+    pass
+
+
+def main():
+    args = argparser()
