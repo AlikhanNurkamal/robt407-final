@@ -7,7 +7,7 @@ from PIL import Image
 from glob import glob
 
 
-class MyDataset(Dataset):
+class CustomDataset(Dataset):
     def __init__(self, root_dir, imgs, labels, transform=None):
         super().__init__()
         self.root_dir = root_dir
