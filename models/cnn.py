@@ -132,3 +132,13 @@ class MyResNet(nn.Module):
         x = self.fc1(x)
 
         return x
+
+
+# in this project we have 10 classes to predict, so out_classes=10
+def ResNet50(in_channels):
+    return MyResNet(50, in_channels, out_classes=10)
+
+
+# in this project we have 10 classes to predict, so out_classes=10
+def ResNet101(in_channels):
+    return MyResNet(101, in_channels, out_classes=10)
