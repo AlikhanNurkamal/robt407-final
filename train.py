@@ -101,6 +101,7 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
     patience_counter = 0
 
     for epoch in range(config['EPOCHS']):
+        adjust_learning_rate(optimizer=optimizer, epoch=epoch)
         loss, accuracy, precision, recall, f1 = train(train_loader, model, loss_fn, optimizer, epoch + 1, config['DEVICE'])
         TRAIN_HISTORY['Loss'].append(loss)
         TRAIN_HISTORY['Accuracy'].append(accuracy)
@@ -124,11 +125,62 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
             if patience_counter == config['PATIENCE']:
                 print(f"Early stopping at epoch {epoch + 1}")
                 break
+            
+    save_graphs(TRAIN_HISTORY['Loss'], VAL_HISTORY['Loss'], type="Loss")
+    save_graphs(TRAIN_HISTORY['Accuracy'],VAL_HISTORY['Accuracy'], type='Accuracy')
+    save_graphs(TRAIN_HISTORY['F1'],VAL_HISTORY['F1'], type='F1')
     
     print('Training finished!')
     return TRAIN_HISTORY, VAL_HISTORY
 
 
+def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=10, enable_cos=True):
+    lr = lr_init
+    if warmup and epoch < warmup_ep:
+        lr = lr / (warmup_ep - epoch)
+    elif enable_cos:
+        lr *= 0.5 * (1. + math.cos(math.pi * (epoch - warmup_ep) / (total_epochs - warmup_ep)))
+
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+        
+        
+def save_graphs(train, test, type="None"): 
+    plt.figure(figsize=(10,5))
+    plt.title(f"Training and Test {type}")
+    plt.plot(test,label="test")
+    plt.plot(train,label="train")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(f'{type}.png')
+
+
 def main():
-    # args = argparser()
-    pass
+    
+    img_resize = 224 # TODO add to config
+    
+    model = ResNet50()
+    
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.AdamW(models.paramters(), lr=0.001, weight_decay=0.01)  # TODO add to config
+    
+    normalize = [] # [transforms.Normalize(mean=img_mean, std=img_std)]  # TODO add to config
+    augmentatinos = []
+    augmentatinos += [transforms.Resize(img_resize),
+                      transforms.RandomHorizontalFlip(),
+                      transforms.ToTensor(),
+                      *normalize]
+    
+    augmentatinos = transforms.Compose(augmentatinos)
+    
+    train_dataset = CustomDataset(images_dir='dir', transform=augmentatinos)
+    # val_dataset = 
+    
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)  # TODO add to config
+    # val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    
+    train_and_validate(train_loader, val_loader, model, criterion, optimizer, config)
+    
+    
+    # Memory consumtion, training time??
