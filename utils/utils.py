@@ -1,10 +1,12 @@
 import os
+import torch
+import torch.nn as nn
 from torch.utils.data import Dataset
 from PIL import Image
 from glob import glob
 
 
-class CustomDataset(Dataset):
+class CNNCustomDataset(Dataset):
     def __init__(self, images_dir, transform=None):
         super().__init__()
         self.images_dir = images_dir
@@ -35,7 +37,7 @@ class CustomDataset(Dataset):
         return image, label
 
 
-class InferenceDataset(Dataset):
+class CNNInferenceDataset(Dataset):
     def __init__(self, images_dir, transform=None):
         super().__init__()
         self.images_dir = images_dir
@@ -56,3 +58,16 @@ class InferenceDataset(Dataset):
 
         # to submit to kaggle competition I need to return image name
         return img_name, image
+
+
+# logloss function for State Farm Distracted Driver Detection competition
+# class logloss(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+    
+#     def forward(self, labels, preds):
+#         labels = labels.float()
+#         preds = preds.float()
+#         preds = torch.max(torch.min(preds, torch.tensor(1 - 1e-15)), torch.tensor(1e-15))
+#         loss = -torch.mean(torch.sum(labels * torch.log(preds), dim=1))
+#         return loss.item()
