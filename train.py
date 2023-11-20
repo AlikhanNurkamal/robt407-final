@@ -117,7 +117,7 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
         VAL_HISTORY['F1'].append(f1)
 
         # since our evaluation metric is logloss, we want to minimize it and early stopping will be based on it
-        if loss > best_loss:
+        if loss < best_loss:
             best_loss = loss
             patience_counter = 0
             torch.save(model.state_dict(), 'best_model.pth')
