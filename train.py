@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from models import ResNet50, ResNet101
-from utils import CustomDataset
+from utils import CNNCustomDataset
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 import torch
@@ -174,11 +174,11 @@ def main():
     
     augmentatinos = transforms.Compose(augmentatinos)
     
-    train_dataset = CustomDataset(images_dir='dir', transform=augmentatinos)
+    train_dataset = CNNCustomDataset(images_dir='dir', transform=augmentatinos)
     # val_dataset = 
     
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)  # TODO add to config
-    # val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config['BATCH_SIZE'], shuffle=True)  # TODO add to config
+    # val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config['BATCH_SIZE'], shuffle=False)
     
     train_and_validate(train_loader, val_loader, model, criterion, optimizer, config)
     
