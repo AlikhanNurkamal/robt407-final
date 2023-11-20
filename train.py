@@ -97,7 +97,7 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
     }
 
     # for early stopping
-    best_f1 = 0.0
+    best_loss = 0.0
     patience_counter = 0
 
     for epoch in range(config['EPOCHS']):
@@ -116,8 +116,9 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
         VAL_HISTORY['Recall'].append(recall)
         VAL_HISTORY['F1'].append(f1)
 
-        if f1 > best_f1:
-            best_f1 = f1
+        # since our evaluation metric is logloss, we want to minimize it and early stopping will be based on it
+        if loss > best_loss:
+            best_loss = loss
             patience_counter = 0
             torch.save(model.state_dict(), 'best_model.pth')
         else:
@@ -125,7 +126,7 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
             if patience_counter == config['PATIENCE']:
                 print(f"Early stopping at epoch {epoch + 1}")
                 break
-            
+        
     save_graphs(TRAIN_HISTORY['Loss'], VAL_HISTORY['Loss'], type="Loss")
     save_graphs(TRAIN_HISTORY['Accuracy'],VAL_HISTORY['Accuracy'], type='Accuracy')
     save_graphs(TRAIN_HISTORY['F1'],VAL_HISTORY['F1'], type='F1')
@@ -163,7 +164,7 @@ def main():
     model = ResNet50()
     
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(models.paramters(), lr=0.001, weight_decay=0.01)  # TODO add to config
+    optimizer = torch.optim.AdamW(model.paramters(), lr=0.001, weight_decay=0.01)  # TODO add to config
     
     normalize = [] # [transforms.Normalize(mean=img_mean, std=img_std)]  # TODO add to config
     augmentatinos = []
