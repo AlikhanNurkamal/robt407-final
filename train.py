@@ -14,7 +14,7 @@ from torchvision import transforms
 from tqdm import tqdm
 
 
-def calculate_metrics(labels, preds):
+def get_metrics(labels, preds):
     accuracy = accuracy_score(labels, preds)
     precision = precision_score(labels, preds, average='weighted')
     recall = recall_score(labels, preds, average='weighted')
@@ -25,7 +25,7 @@ def calculate_metrics(labels, preds):
 def train(train_loader, model, loss_fn, optimizer, epoch, device):
     model.train()
 
-    all_preds = []
+    predictions = []
     all_labels = []
     total_loss = 0.0
 
@@ -41,11 +41,11 @@ def train(train_loader, model, loss_fn, optimizer, epoch, device):
 
         # get predictions as the index of max logit
         preds = torch.argmax(logits, dim=1)
-        all_preds.extend(preds.detach().cpu().numpy())
+        predictions.extend(preds.detach().cpu().numpy())
         all_labels.extend(labels.detach().cpu().numpy())
         total_loss += loss.item()
     
-    accuracy, precision, recall, f1 = calculate_metrics(all_labels, all_preds)
+    accuracy, precision, recall, f1 = get_metrics(all_labels, predictions)
     avg_loss = total_loss / len(train_loader)
 
     print(f"Epoch {epoch} | Train Loss: {avg_loss} | F1: {f1} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall}")
@@ -55,7 +55,7 @@ def train(train_loader, model, loss_fn, optimizer, epoch, device):
 def validate(val_loader, model, loss_fn, device):
     model.eval()
 
-    all_preds = []
+    predictions = []
     all_labels = []
     total_loss = 0.0
 
@@ -69,11 +69,11 @@ def validate(val_loader, model, loss_fn, device):
 
         # get predictions as the index of max logit
         preds = torch.argmax(logits, dim=1)
-        all_preds.extend(preds.detach().cpu().numpy())
+        predictions.extend(preds.detach().cpu().numpy())
         all_labels.extend(labels.detach().cpu().numpy())
         total_loss += loss.item()
     
-    accuracy, precision, recall, f1 = calculate_metrics(all_labels, all_preds)
+    accuracy, precision, recall, f1 = get_metrics(all_labels, predictions)
     avg_loss = total_loss / len(val_loader)
 
     print(f"\tValidation Loss: {avg_loss} | F1: {f1} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall}")
