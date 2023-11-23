@@ -4,29 +4,34 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 from PIL import Image
 from glob import glob
+from config import config
+
+
+def get_images_labels():
+    images = []
+    labels = []
+
+    for label in list(glob(config['ROOT_DIR'] + '*')):
+        imgs_paths = list(glob(os.path.join(config['ROOT_DIR'], label, '*.jpg')))
+        labels.extend([int(label[-1]) for i in range(len(imgs_paths))])
+        images.extend([image for image in imgs_paths])
+    
+    return images, labels
 
 
 class CNNCustomDataset(Dataset):
-    def __init__(self, images_dir, transform=None):
+    def __init__(self, images, labels, transform=None):
         super().__init__()
-        self.images_dir = images_dir
+        self.images = images
+        self.labels = labels
         self.transform = transform
 
-        self.images_paths = []
-        self.labels = []
-        
-        # iterate through each folder (name of a folder corresponds to a class)
-        for label in list(glob(os.path.join(images_dir, '*'))):
-            images = list(glob(os.path.join(images_dir, label, '*.jpg')))
-            self.labels.extend([int(label[-1]) for i in range(len(images))])
-            self.images_paths.extend([image for image in images])
-
     def __len__(self):
-        return len(self.images_paths)
+        return len(self.images)
 
     def __getitem__(self, index):
         # getting the path to one image
-        img_path = self.images_paths[index]
+        img_path = self.images[index]
 
         image = Image.open(img_path).convert('RGB')
         label = self.labels[index]
@@ -58,16 +63,3 @@ class CNNInferenceDataset(Dataset):
 
         # to submit to kaggle competition I need to return image name
         return img_name, image
-
-
-# logloss function for State Farm Distracted Driver Detection competition
-# class logloss(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-    
-#     def forward(self, labels, preds):
-#         labels = labels.float()
-#         preds = preds.float()
-#         preds = torch.max(torch.min(preds, torch.tensor(1 - 1e-15)), torch.tensor(1e-15))
-#         loss = -torch.mean(torch.sum(labels * torch.log(preds), dim=1))
-#         return loss.item()
