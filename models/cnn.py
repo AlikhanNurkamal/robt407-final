@@ -2,6 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# Custom CNN architecture
+class customCNN(nn.Module):
+    def __init__(self):
+        pass
+
 # Block for ResNet50 and ResNet101 architectures
 class Block(nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
@@ -143,7 +148,3 @@ def ResNet50(in_channels=3, out_classes=10):
 def ResNet101(in_channels=3, out_classes=10):
     return MyResNet(101, in_channels, out_classes=out_classes)
 
-
-class customCNN(nn.Module):
-    def __init__(self):
-        pass
