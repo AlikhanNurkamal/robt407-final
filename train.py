@@ -5,9 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from config import config
-from models import ResNet50, ResNet101
+from models import ResNet50, ResNet101, customCNN
+import utils
 from utils import CNNCustomDataset
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split
 
 import torch
 import torch.nn as nn
@@ -54,7 +56,7 @@ def train(train_loader, model, loss_fn, optimizer, epoch, device):
     return avg_loss, accuracy, precision, recall, f1
 
 
-def validate(val_loader, model, loss_fn, device):
+def evaluate(val_loader, model, loss_fn, device):
     model.eval()
 
     predictions = []
@@ -82,7 +84,7 @@ def validate(val_loader, model, loss_fn, device):
     return avg_loss, accuracy, precision, recall, f1
 
 
-def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, config):# epochs=EPOCHS, patience=PATIENCE, device=DEVICE):
+def run_training(train_loader, val_loader, model, loss_fn, optimizer, config):
     TRAIN_HISTORY = {
         'Loss': [],
         'Accuracy': [],
@@ -111,7 +113,7 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
         TRAIN_HISTORY['Recall'].append(recall)
         TRAIN_HISTORY['F1'].append(f1)
 
-        loss, accuracy, precision, recall, f1 = validate(val_loader, model, loss_fn, config['DEVICE'])
+        loss, accuracy, precision, recall, f1 = evaluate(val_loader, model, loss_fn, config['DEVICE'])
         VAL_HISTORY['Loss'].append(loss)
         VAL_HISTORY['Accuracy'].append(accuracy)
         VAL_HISTORY['Precision'].append(precision)
@@ -138,16 +140,35 @@ def train_and_validate(train_loader, val_loader, model, loss_fn, optimizer, conf
 
 
 def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=10, enable_cos=True):
-    lr = lr_init
+    lr = config['LR_INIT']
     if warmup and epoch < warmup_ep:
         lr = lr / (warmup_ep - epoch)
     elif enable_cos:
-        lr *= 0.5 * (1. + math.cos(math.pi * (epoch - warmup_ep) / (total_epochs - warmup_ep)))
+        lr *= 0.5 * (1. + math.cos(math.pi * (epoch - warmup_ep) / (config['EPOCHS'] - warmup_ep)))
 
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
-        
-        
+
+
+def get_dataloaders():
+    train_transformations = utils.train_transforms
+    val_transformations = utils.val_transforms
+
+    all_images, all_labels = utils.get_images_labels()
+    train_images, val_images, train_labels, val_labels = train_test_split(all_images,
+                                                                          all_labels,
+                                                                          test_size=0.2,
+                                                                          random_state=42)
+    
+    train_dataset = CNNCustomDataset(train_images, train_labels, transform=train_transformations)
+    val_dataset = CNNCustomDataset(val_images, val_labels, transform=val_transformations)
+
+    train_loader = DataLoader(train_dataset, batch_size=config['BATCH_SIZE'], shuffle=True, num_workers=config['NUM_WORKERS'])
+    val_loader = DataLoader(val_dataset, batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=config['NUM_WORKERS'])
+
+    return train_loader, val_loader
+
+
 def save_graphs(train, test, type="None"): 
     plt.figure(figsize=(10,5))
     plt.title(f"Training and Test {type}")
@@ -160,32 +181,18 @@ def save_graphs(train, test, type="None"):
 
 
 def main():
-    
-    img_resize = 224 # TODO add to config
-    
-    model = ResNet50()
-    
+    models = [('resnet50', ResNet50()),
+              ('resnet101', ResNet101()),
+              ('customCNN', customCNN())]
+    model_name, model = models[0]
+
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.paramters(),
                                   lr=config['LEARNING_RATE'],
                                   weight_decay=config['WEIGHT_DECAY'])
     
-    normalize = [] # [transforms.Normalize(mean=img_mean, std=img_std)]  # TODO add to config
-    augmentatinos = []
-    augmentatinos += [transforms.Resize(img_resize),
-                      transforms.RandomHorizontalFlip(),
-                      transforms.ToTensor(),
-                      *normalize]
+    train_loader, val_loader = get_dataloaders()
     
-    augmentatinos = transforms.Compose(augmentatinos)
-    
-    train_dataset = CNNCustomDataset(images_dir='dir', transform=augmentatinos)
-    # val_dataset = 
-    
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config['BATCH_SIZE'], shuffle=True)  # TODO add to config
-    # val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config['BATCH_SIZE'], shuffle=False)
-    
-    train_and_validate(train_loader, val_loader, model, criterion, optimizer, config)
-    
+    run_training(train_loader, val_loader, model, criterion, optimizer, config)
     
     # Memory consumtion, training time??
