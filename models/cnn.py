@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+# Block for ResNet50 and ResNet101 architectures
 class Block(nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
         """
@@ -49,7 +49,7 @@ class Block(nn.Module):
         x = F.relu(x)
         return x
 
-
+# ResNet50 and ResNet101 architectures
 class MyResNet(nn.Module):
     def __init__(self, num_layers, in_channels, out_classes):
         """
@@ -142,3 +142,8 @@ def ResNet50(in_channels=3, out_classes=10):
 # in this project we have 10 classes to predict, so out_classes=10
 def ResNet101(in_channels=3, out_classes=10):
     return MyResNet(101, in_channels, out_classes=out_classes)
+
+
+class customCNN(nn.Module):
+    def __init__(self):
+        pass
