@@ -3,6 +3,8 @@ import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+from config import config
 from models import ResNet50, ResNet101
 from utils import CNNCustomDataset
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -164,7 +166,9 @@ def main():
     model = ResNet50()
     
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.paramters(), lr=0.001, weight_decay=0.01)  # TODO add to config
+    optimizer = torch.optim.AdamW(model.paramters(),
+                                  lr=config['LEARNING_RATE'],
+                                  weight_decay=config['WEIGHT_DECAY'])
     
     normalize = [] # [transforms.Normalize(mean=img_mean, std=img_std)]  # TODO add to config
     augmentatinos = []
