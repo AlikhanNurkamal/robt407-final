@@ -6,6 +6,7 @@
 config = {
     'ROOT_DIR': 'data/',
     'TEST_DIR': 'data/test/',
+    'MODELS_DIR': 'models/',
     'IMG_SIZE': 224,
     'BATCH_SIZE': 64,
     'EPOCHS': 100,
