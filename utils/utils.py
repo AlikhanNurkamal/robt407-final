@@ -2,9 +2,29 @@ import os
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
+from torchvision import transforms
 from PIL import Image
 from glob import glob
 from config import config
+
+# train transformations
+train_transforms = transforms.Compose([
+    transforms.Resize((config['IMG_SIZE'], config['IMG_SIZE'])),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomRotation(degrees=(-30, 30)),
+    transforms.GaussianBlur(kernel_size=3),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                         std=[0.229, 0.224, 0.225]),
+])
+
+# val/test/inference transformations
+val_transforms = transforms.Compose([
+    transforms.Resize((config['IMG_SIZE'], config['IMG_SIZE'])),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                         std=[0.229, 0.224, 0.225]),
+])
 
 
 def get_images_labels():
