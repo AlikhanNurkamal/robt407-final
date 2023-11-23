@@ -6,9 +6,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from config import config
-from models import ResNet50, ResNet101, customCNN
-import utils
-from utils import CNNCustomDataset
+from models.cnn import ResNet50, ResNet101, customCNN
+import utils.utils as utils
+from utils.utils import CNNCustomDataset
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
 
@@ -84,7 +84,7 @@ def evaluate(val_loader, model, loss_fn, device):
     return avg_loss, accuracy, precision, recall, f1
 
 
-def run_training(train_loader, val_loader, model, loss_fn, optimizer, config):
+def run_training(train_loader, val_loader, model, model_name, loss_fn, optimizer, config):
     TRAIN_HISTORY = {
         'Loss': [],
         'Accuracy': [],
@@ -126,7 +126,7 @@ def run_training(train_loader, val_loader, model, loss_fn, optimizer, config):
             best_loss = loss
             patience_counter = 0
             print(f'Saving best model at epoch {epoch + 1}...')
-            torch.save(model.state_dict(), 'best_model.pth')
+            torch.save(model.state_dict(), f'{model_name}_best_model.pth')
         else:
             patience_counter += 1
             if patience_counter == config['PATIENCE']:
@@ -182,19 +182,45 @@ def save_graphs(train, test, type='None'):
     plt.savefig(f'{type}.png')
 
 
-def main():
-    models = [('resnet50', ResNet50()),
-              ('resnet101', ResNet101()),
-              ('customCNN', customCNN())]
-    model_name, model = models[0]
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--task', type=int, required=True,
+                        help='Task number. 1 for Distracted Driver Detection, 2 for Quora Insincere Questions Classification')
+    parser.add_argument('--model_name', type=str, required=True, help='Model name')
+    return parser.parse_args()
 
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.paramters(),
-                                  lr=config['LEARNING_RATE'],
-                                  weight_decay=config['WEIGHT_DECAY'])
-    
-    train_loader, val_loader = get_dataloaders()
-    
-    run_training(train_loader, val_loader, model, criterion, optimizer, config)
+
+def main():
+    args = parse_args()
+    task = args.task
+    model_name = args.model
+
+    if task == 1:
+        if 'resnet50' in model_name:
+            model = ResNet50()
+            model_name = 'resnet50'
+        elif 'resnet101' in model_name:
+            model = ResNet101()
+            model_name = 'resnet101'
+        elif 'custom' in model_name:
+            model = customCNN()
+            model_name = 'custom'
+        else:
+            raise NotImplementedError('unknown architecture')
+
+        criterion = torch.nn.CrossEntropyLoss()
+        optimizer = torch.optim.AdamW(model.paramters(),
+                                      lr=config['LEARNING_RATE'],
+                                      weight_decay=config['WEIGHT_DECAY'])
+        
+        train_loader, val_loader = get_dataloaders()
+        run_training(train_loader, val_loader, model, model_name, criterion, optimizer, config)
+    elif task == 2:
+        pass
+    else:
+        raise Exception('unknown task')
     
     # Memory consumtion, training time??
+
+if __name__ == '__main__':
+    main()
