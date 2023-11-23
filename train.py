@@ -1,5 +1,6 @@
 import os
 import argparse
+import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,7 +15,6 @@ from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from torchvision import transforms
 from tqdm import tqdm
 
 
@@ -33,7 +33,7 @@ def train(train_loader, model, loss_fn, optimizer, epoch, device):
     all_labels = []
     total_loss = 0.0
 
-    for data in tqdm(train_loader):
+    for data in tqdm(train_loader, desc='Training'):
         imgs, labels = data
         imgs, labels = imgs.to(device), labels.to(device)
 
@@ -52,7 +52,7 @@ def train(train_loader, model, loss_fn, optimizer, epoch, device):
     accuracy, precision, recall, f1 = get_metrics(all_labels, predictions)
     avg_loss = total_loss / len(train_loader)
 
-    print(f"Epoch {epoch} | Train Loss: {avg_loss} | F1: {f1} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall}")
+    print(f'Epoch {epoch} | Train Loss: {avg_loss} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall} | F1: {f1}')
     return avg_loss, accuracy, precision, recall, f1
 
 
@@ -63,7 +63,7 @@ def evaluate(val_loader, model, loss_fn, device):
     all_labels = []
     total_loss = 0.0
 
-    for data in tqdm(val_loader):
+    for data in tqdm(val_loader, desc='Validating'):
         imgs, labels = data
         imgs, labels = imgs.to(device), labels.to(device)
 
@@ -80,7 +80,7 @@ def evaluate(val_loader, model, loss_fn, device):
     accuracy, precision, recall, f1 = get_metrics(all_labels, predictions)
     avg_loss = total_loss / len(val_loader)
 
-    print(f"\tValidation Loss: {avg_loss} | F1: {f1} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall}")
+    print(f'\tValidation Loss: {avg_loss} | Accuracy: {accuracy} | Precision: {precision} | Recall: {recall} | F1: {f1}')
     return avg_loss, accuracy, precision, recall, f1
 
 
@@ -101,7 +101,8 @@ def run_training(train_loader, val_loader, model, loss_fn, optimizer, config):
     }
 
     # for early stopping
-    best_loss = 0.0
+    # we will save the best model based on the validation loss
+    best_loss = np.inf  # set to infinity so that the first validation loss is always lower
     patience_counter = 0
 
     for epoch in range(config['EPOCHS']):
@@ -124,6 +125,7 @@ def run_training(train_loader, val_loader, model, loss_fn, optimizer, config):
         if loss < best_loss:
             best_loss = loss
             patience_counter = 0
+            print(f'Saving best model at epoch {epoch + 1}...')
             torch.save(model.state_dict(), 'best_model.pth')
         else:
             patience_counter += 1
@@ -131,9 +133,9 @@ def run_training(train_loader, val_loader, model, loss_fn, optimizer, config):
                 print(f"Early stopping at epoch {epoch + 1}")
                 break
         
-    save_graphs(TRAIN_HISTORY['Loss'], VAL_HISTORY['Loss'], type="Loss")
-    save_graphs(TRAIN_HISTORY['Accuracy'],VAL_HISTORY['Accuracy'], type='Accuracy')
-    save_graphs(TRAIN_HISTORY['F1'],VAL_HISTORY['F1'], type='F1')
+    save_graphs(TRAIN_HISTORY['Loss'], VAL_HISTORY['Loss'], type='Loss')
+    save_graphs(TRAIN_HISTORY['Accuracy'], VAL_HISTORY['Accuracy'], type='Accuracy')
+    save_graphs(TRAIN_HISTORY['F1'], VAL_HISTORY['F1'], type='F1')
     
     print('Training finished!')
     return TRAIN_HISTORY, VAL_HISTORY
@@ -169,7 +171,7 @@ def get_dataloaders():
     return train_loader, val_loader
 
 
-def save_graphs(train, test, type="None"): 
+def save_graphs(train, test, type='None'):
     plt.figure(figsize=(10,5))
     plt.title(f"Training and Test {type}")
     plt.plot(test,label="test")
