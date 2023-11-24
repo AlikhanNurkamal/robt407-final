@@ -56,6 +56,12 @@ def get_dataloaders():
     return train_loader, val_loader
 
 
+def get_test_dataloader():
+    test_dataset = CNNInferenceDataset(config['TEST_DIR'], transform=val_transforms)
+    test_loader = DataLoader(test_dataset, batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=config['NUM_WORKERS'])
+    return test_loader
+
+
 class CNNCustomDataset(Dataset):
     def __init__(self, images, labels, transform=None):
         super().__init__()

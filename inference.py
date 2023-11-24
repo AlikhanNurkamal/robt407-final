@@ -7,18 +7,10 @@ from models.cnn import *
 
 import torch
 import torch.nn as nn
-import utils.utils as utils
-from utils.utils import CNNInferenceDataset
-from torch.utils.data import DataLoader
+from utils.utils import get_test_dataloader
 
 
 def cnn_inference(test_loader, model, model_name, config):
-    if model_name == 'resnet50' or model_name == 'resnet101':
-        model.fc = nn.Linear(2048, 10)
-    else:
-        raise NotImplementedError('unknown architecture')
-    
-    model = model.to(config['DEVICE'])
     model.load_state_dict(torch.load(os.path.join(config['MODELS_DIR'], f'{model_name}_best_model.pth')))
     model.eval()
 
@@ -34,17 +26,19 @@ def cnn_inference(test_loader, model, model_name, config):
             img_names.extend(img_name)
             predictions.extend(logits.detach().cpu().numpy())
     
-    # convert predictions to columns to submit to kaggle
-    columns = pd.get_dummies(predictions)
-    res = pd.DataFrame({'img': img_names})
-    res = pd.concat([res, columns], axis=1)
-    res.rename(columns={0: 'c0', 1: 'c1', 2: 'c2',
-                        3: 'c3', 4: 'c4', 5: 'c5',
-                        6: 'c6', 7: 'c7', 8: 'c8',
-                        9: 'c9'}, inplace=True)
-    res.replace({False: 0, True: 1}, inplace=True)
+    # below code is incorrect. should be fixed!
 
-    return res
+    # convert predictions to columns to submit to kaggle
+    # columns = pd.get_dummies(predictions)
+    # res = pd.DataFrame({'img': img_names})
+    # res = pd.concat([res, columns], axis=1)
+    # res.rename(columns={0: 'c0', 1: 'c1', 2: 'c2',
+    #                     3: 'c3', 4: 'c4', 5: 'c5',
+    #                     6: 'c6', 7: 'c7', 8: 'c8',
+    #                     9: 'c9'}, inplace=True)
+    # res.replace({False: 0, True: 1}, inplace=True)
+
+    # return res
 
 
 def rnn_inference():
@@ -77,13 +71,12 @@ def main():
         else:
             raise NotImplementedError('unknown architecture')
 
-        test_transformations = utils.val_transforms
-        test_dataset = CNNInferenceDataset(config['TEST_DIR'], transform=test_transformations)
-        test_loader = DataLoader(test_dataset, batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=config['NUM_WORKERS'])
-
+        model = model.to(config['DEVICE'])
+        test_loader = get_test_dataloader()
+        
         # this csv file will be submitted to kaggle
         result = cnn_inference(test_loader, model, model_name, config)
-        return result
+        result.to_csv('result.csv', index=False)
     elif task == 2:
         pass
     else:

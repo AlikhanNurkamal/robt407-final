@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from config import config
-from models.cnn import ResNet50, ResNet101, customCNN
+from models.cnn import *
 from utils.utils import get_dataloaders
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
