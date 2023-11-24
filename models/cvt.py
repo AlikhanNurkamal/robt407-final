@@ -2,7 +2,80 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models.vit import MSA, MLP, EncoderBlock
+#from models.vit import MSA, MLP, EncoderBlock
+
+
+       
+# MultiHeadAttention Module
+class MSA(nn.Module):
+    def __init__(self, embedding_dim: int=192, num_heads: int=3, dropout: float=0):
+        super().__init__()
+        # layer normalization layer
+        self.layer_norm = nn.LayerNorm(normalized_shape=embedding_dim)
+        # multiheadattention layer
+        self.msa_attention = nn.MultiheadAttention(embed_dim=embedding_dim,
+                                                   num_heads=num_heads,
+                                                   dropout=dropout,
+                                                   batch_first=True)
+        
+    def forward(self, x):
+        x = self.layer_norm(x)
+        # query, key, value are formed from the same x
+        x, _ = self.msa_attention(query=x,
+                                    key=x,
+                                    value=x,
+                                    need_weights=False)
+        return x
+    
+# MLP layer   
+class MLP(nn.Module):
+    def __init__(self, 
+                 embedding_dim: int=192,
+                 mlp_size: int=768,
+                 dropout: float=0.1):
+        super().__init__()
+        # layer normalization
+        self.layer_norm = nn.LayerNorm(normalized_shape=embedding_dim)
+        # two linear layers separated by GeLU activation
+        self.mlp = nn.Sequential(
+                nn.Linear(in_features=embedding_dim,
+                        out_features=mlp_size), # from input_dim to mlp_size
+                nn.GELU(),
+                nn.Dropout(p=dropout),
+                nn.Linear(in_features=mlp_size, # from mlp_size to input_dim
+                        out_features=embedding_dim),
+                nn.Dropout(p=dropout))
+        
+    def forward(self, x):
+        x = self.layer_norm(x)
+        x = self.mlp(x)
+        
+        return x
+        
+# Transformer encoder block
+class EncoderBlock(nn.Module):
+    def __init__(self,
+                 embedding_dim: int=192,
+                 num_heads: int=3,
+                 mlp_size: int=768,
+                 mlp_dropout: float=0.1,
+                 msa_dropout: float=0.0):
+        super().__init__()
+        # each block (layer) consists of MSA and MLP
+        self.msa = MSA(embedding_dim=embedding_dim,
+                       num_heads=num_heads,
+                       dropout=msa_dropout)
+        
+        self.mlp = MLP(embedding_dim=embedding_dim,
+                       mlp_size=mlp_size,
+                       dropout=mlp_dropout)
+        
+    def forward(self, x):
+        x = self.msa(x) + x # skip connection #1
+        x = self.mlp(x) + x # skip connection #2
+        
+        return x
+
 
 # taken from CVT-CCT paper
 class Tokenizer(nn.Module):
