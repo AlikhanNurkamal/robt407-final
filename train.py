@@ -1,4 +1,3 @@
-import os
 import argparse
 import math
 import numpy as np
@@ -7,14 +6,11 @@ import matplotlib.pyplot as plt
 
 from config import config
 from models.cnn import ResNet50, ResNet101, customCNN
-import utils.utils as utils
-from utils.utils import CNNCustomDataset
+from utils.utils import get_dataloaders
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from sklearn.model_selection import train_test_split
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 
@@ -26,7 +22,7 @@ def get_metrics(labels, preds):
     return accuracy, precision, recall, f1
 
 
-def train(train_loader, model, loss_fn, optimizer, epoch, device):
+def train(train_loader, model, loss_fn, optimizer, epoch):
     model.train()
 
     predictions = []
@@ -35,7 +31,7 @@ def train(train_loader, model, loss_fn, optimizer, epoch, device):
 
     for data in tqdm(train_loader, desc='Training'):
         imgs, labels = data
-        imgs, labels = imgs.to(device), labels.to(device)
+        imgs, labels = imgs.to(config['DEVICE']), labels.to(config['DEVICE'])
 
         optimizer.zero_grad()
         logits = model(imgs)
@@ -56,7 +52,7 @@ def train(train_loader, model, loss_fn, optimizer, epoch, device):
     return avg_loss, accuracy, precision, recall, f1
 
 
-def evaluate(val_loader, model, loss_fn, device):
+def evaluate(val_loader, model, loss_fn):
     model.eval()
 
     predictions = []
@@ -65,7 +61,7 @@ def evaluate(val_loader, model, loss_fn, device):
 
     for data in tqdm(val_loader, desc='Validating'):
         imgs, labels = data
-        imgs, labels = imgs.to(device), labels.to(device)
+        imgs, labels = imgs.to(config['DEVICE']), labels.to(config['DEVICE'])
 
         with torch.no_grad():
             logits = model(imgs)
@@ -107,14 +103,14 @@ def run_cnn_training(train_loader, val_loader, model, model_name, loss_fn, optim
 
     for epoch in range(config['EPOCHS']):
         adjust_learning_rate(optimizer=optimizer, epoch=epoch)
-        loss, accuracy, precision, recall, f1 = train(train_loader, model, loss_fn, optimizer, epoch + 1, config['DEVICE'])
+        loss, accuracy, precision, recall, f1 = train(train_loader, model, loss_fn, optimizer, epoch + 1)
         TRAIN_HISTORY['Loss'].append(loss)
         TRAIN_HISTORY['Accuracy'].append(accuracy)
         TRAIN_HISTORY['Precision'].append(precision)
         TRAIN_HISTORY['Recall'].append(recall)
         TRAIN_HISTORY['F1'].append(f1)
 
-        loss, accuracy, precision, recall, f1 = evaluate(val_loader, model, loss_fn, config['DEVICE'])
+        loss, accuracy, precision, recall, f1 = evaluate(val_loader, model, loss_fn)
         VAL_HISTORY['Loss'].append(loss)
         VAL_HISTORY['Accuracy'].append(accuracy)
         VAL_HISTORY['Precision'].append(precision)
@@ -156,25 +152,6 @@ def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=10, enable_cos
         param_group['lr'] = lr
 
 
-def get_dataloaders():
-    train_transformations = utils.train_transforms
-    val_transformations = utils.val_transforms
-
-    all_images, all_labels = utils.get_images_labels()
-    train_images, val_images, train_labels, val_labels = train_test_split(all_images,
-                                                                          all_labels,
-                                                                          test_size=0.2,
-                                                                          random_state=42)
-    
-    train_dataset = CNNCustomDataset(train_images, train_labels, transform=train_transformations)
-    val_dataset = CNNCustomDataset(val_images, val_labels, transform=val_transformations)
-
-    train_loader = DataLoader(train_dataset, batch_size=config['BATCH_SIZE'], shuffle=True, num_workers=config['NUM_WORKERS'])
-    val_loader = DataLoader(val_dataset, batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=config['NUM_WORKERS'])
-
-    return train_loader, val_loader
-
-
 def save_graphs(train, test, type='None'):
     plt.figure(figsize=(10,5))
     plt.title(f"Training and Test {type}")
@@ -212,6 +189,7 @@ def main():
         else:
             raise NotImplementedError('unknown architecture')
 
+        model = model.to(config['DEVICE'])
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.AdamW(model.parameters(),
                                       lr=config['LR_INIT'],
