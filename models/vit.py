@@ -16,13 +16,13 @@ class PatchEmbedding(nn.Module):
         self.flatten = nn.Flatten(start_dim=2, end_dim=3)
         
         
-        def forward(self, x):
-            image_resolution = x.shape[-1]
-            
-            x = self.patches(x)
-            x = self.flatten(x)
-            
-            return x.permute(0, 2, 1)
+    def forward(self, x):
+        image_resolution = x.shape[-1]
+        
+        x = self.patches(x)
+        x = self.flatten(x)
+        
+        return x.permute(0, 2, 1)
         
         
 
@@ -37,14 +37,14 @@ class MSA(nn.Module):
                                                    dropout=dropout,
                                                    batch_first=True)
         
-        def forward(self, x):
-            x = self.layer_norm(x)
-            x, _ = self.msa_attention(query=x,
-                                      key=x,
-                                      value=x,
-                                      need_weights=False)
-            return x
-        
+    def forward(self, x):
+        x = self.layer_norm(x)
+        x, _ = self.msa_attention(query=x,
+                                    key=x,
+                                    value=x,
+                                    need_weights=False)
+        return x
+    
         
 class MLP(nn.Module):
     def __init__(self, 
@@ -107,7 +107,7 @@ class ViT(nn.Module):
                  msa_dropout: float=0.0,
                  mlp_dropout: float=0.1,
                  emb_dropout: float=0.1,
-                 num_classes: int=10):
+                 num_classes: int=1000):
         super().__init__()
         
         self.num_patches = (img_size*img_size) // patch_size**2
@@ -151,3 +151,4 @@ class ViT(nn.Module):
         
         return x
         
+    
