@@ -31,7 +31,7 @@ def get_images_labels():
     images = []
     labels = []
 
-    for label in list(glob(config['ROOT_DIR'] + '*')):
+    for label in list(glob(os.path.join(config['ROOT_DIR'], '*'))):
         imgs_paths = list(glob(os.path.join(config['ROOT_DIR'], label, '*.jpg')))
         labels.extend([int(label[-1]) for i in range(len(imgs_paths))])
         images.extend([image for image in imgs_paths])
