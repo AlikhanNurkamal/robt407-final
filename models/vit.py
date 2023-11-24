@@ -186,3 +186,4 @@ class ViT_Ti_32(ViT):
         super().__init__(patch_size=patch_size,
                          layers=layers,
                          num_classes=num_classes)
+        
