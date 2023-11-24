@@ -11,9 +11,9 @@ config = {
     'BATCH_SIZE': 64,
     'EPOCHS': 100,
     'PATIENCE': 7,
-    'LR_INIT': 0.003,  
+    'LR_INIT': 3e-3,  
     'LR_FINAL': 1e-4,  # pls change this / probably not needed
-    'WEIGHT_DECAY': 0.3, # too much?
+    'WEIGHT_DECAY': 5e-4, # too much?
     'NUM_CLASSES': 10,
     'NUM_WORKERS': 4,
     'NUM_CHANNELS': 3,
