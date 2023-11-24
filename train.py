@@ -209,7 +209,7 @@ def main():
             raise NotImplementedError('unknown architecture')
 
         criterion = torch.nn.CrossEntropyLoss()
-        optimizer = torch.optim.AdamW(model.paramters(),
+        optimizer = torch.optim.AdamW(model.parameters(),
                                       lr=config['LEARNING_RATE'],
                                       weight_decay=config['WEIGHT_DECAY'])
         
