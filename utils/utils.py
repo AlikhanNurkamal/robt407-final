@@ -1,8 +1,9 @@
 import os
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
+from sklearn.model_selection import train_test_split
 from PIL import Image
 from glob import glob
 from config import config
@@ -37,6 +38,22 @@ def get_images_labels():
         images.extend([image for image in imgs_paths])
     
     return images, labels
+
+
+def get_dataloaders():
+    all_images, all_labels = get_images_labels()
+    train_images, val_images, train_labels, val_labels = train_test_split(all_images,
+                                                                          all_labels,
+                                                                          test_size=0.2,
+                                                                          random_state=42)
+    
+    train_dataset = CNNCustomDataset(train_images, train_labels, transform=train_transforms)
+    val_dataset = CNNCustomDataset(val_images, val_labels, transform=val_transforms)
+
+    train_loader = DataLoader(train_dataset, batch_size=config['BATCH_SIZE'], shuffle=True, num_workers=config['NUM_WORKERS'])
+    val_loader = DataLoader(val_dataset, batch_size=config['BATCH_SIZE'], shuffle=False, num_workers=config['NUM_WORKERS'])
+
+    return train_loader, val_loader
 
 
 class CNNCustomDataset(Dataset):
