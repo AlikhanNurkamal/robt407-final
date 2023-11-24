@@ -84,7 +84,7 @@ def evaluate(val_loader, model, loss_fn, device):
     return avg_loss, accuracy, precision, recall, f1
 
 
-def run_training(train_loader, val_loader, model, model_name, loss_fn, optimizer, config):
+def run_cnn_training(train_loader, val_loader, model, model_name, loss_fn, optimizer, config):
     TRAIN_HISTORY = {
         'Loss': [],
         'Accuracy': [],
@@ -139,6 +139,10 @@ def run_training(train_loader, val_loader, model, model_name, loss_fn, optimizer
     
     print('Training finished!')
     return TRAIN_HISTORY, VAL_HISTORY
+
+
+def run_rnn_training():
+    pass
 
 
 def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=10, enable_cos=True):
@@ -210,11 +214,11 @@ def main():
 
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.AdamW(model.parameters(),
-                                      lr=config['LEARNING_RATE'],
+                                      lr=config['LR_INIT'],
                                       weight_decay=config['WEIGHT_DECAY'])
         
         train_loader, val_loader = get_dataloaders()
-        run_training(train_loader, val_loader, model, model_name, criterion, optimizer, config)
+        run_cnn_training(train_loader, val_loader, model, model_name, criterion, optimizer, config)
     elif task == 2:
         pass
     else:
