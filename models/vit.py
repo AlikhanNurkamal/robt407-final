@@ -151,4 +151,38 @@ class ViT(nn.Module):
         
         return x
         
-    
+# ViT_Ti16 configuration                    # compared to original ViT-B it has smaller D size and MLP size
+class ViT_Ti_16(ViT):                       # as well as reduced number of heads 
+    def __init__(self,                      # having less than 6 mln params. while ViT-B has 86 mln
+                 img_size: int=224,
+                 in_channels: int=3,
+                 patch_size: int=16,
+                 layers: int=12,
+                 embedding_dim: int=192,
+                 mlp_size: int=768,
+                 num_heads: int=3,
+                 msa_dropout: float=0.0,
+                 mlp_dropout: float=0.1,
+                 emb_dropout: float=0.1,
+                 num_classes: int=10):
+        super().__init__(patch_size=patch_size,
+                         layers=layers,
+                         num_classes=num_classes)
+ 
+# ViT_Ti32 configuration   
+class ViT_Ti_32(ViT):
+    def __init__(self,
+                 img_size: int=224,
+                 in_channels: int=3,
+                 patch_size: int=32,
+                 layers: int=12,
+                 embedding_dim: int=192,
+                 mlp_size: int=768,
+                 num_heads: int=3,
+                 msa_dropout: float=0.0,
+                 mlp_dropout: float=0.1,
+                 emb_dropout: float=0.1,
+                 num_classes: int=10):
+        super().__init__(patch_size=patch_size,
+                         layers=layers,
+                         num_classes=num_classes)

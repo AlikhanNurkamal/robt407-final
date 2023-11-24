@@ -1,11 +1,11 @@
 from torchinfo import summary
 import torch
-from models.vit import ViT
+from models.vit import ViT_Ti_32
 
 
 inp = torch.randn(1, 3, 224, 224)
 
-vit = ViT(num_classes=10)
+vit = ViT_Ti_32()
 
 print(vit(inp))
 
