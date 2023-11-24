@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from cvt import MSA, MLP, EncoderBlock
+from models.vit import MSA, MLP, EncoderBlock
 
 # taken from CVT-CCT paper
 class Tokenizer(nn.Module):
@@ -13,7 +13,7 @@ class Tokenizer(nn.Module):
                  output_channels: int=64, in_planes: int=64):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(n_input_channels, in_planes,
+        self.conv1 = nn.Conv2d(input_channels, in_planes,
                                kernel_size=(kernel_size, kernel_size),
                                stride=(stride, stride),
                                padding=(padding, padding), bias=False)
@@ -22,7 +22,7 @@ class Tokenizer(nn.Module):
                                      stride=pooling_stride,
                                      padding=pooling_padding)
         
-        self.conv2 = nn.Conv2d(in_planes, n_output_channels,
+        self.conv2 = nn.Conv2d(in_planes, output_channels,
                                kernel_size=(kernel_size, kernel_size),
                                stride=(stride, stride),
                                padding=(padding, padding), bias=False)
@@ -48,15 +48,90 @@ class CvT(nn.Module):
                  layers: int=12, embedding_dim: int=192, mlp_size: int=768,
                  num_heads: int=3, stride: int=2, padding: int=3,
                  pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
-                 conv_layers: int=2, output_channels: int=64, in_planes: int=64,
+                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
                  msa_dropout: float=0.0, mlp_dropout: float=0.1,
-                 emb_dropout: float=0.1, num_classes: int=1000):
+                 emb_dropout: float=0.1, num_classes: int=10):
         super().__init__()
         
         self.tokenizer = Tokenizer(kernel_size=kernel_size, stride=stride, 
                                    padding=padding, pooling_kernel_size=pooling_kernel_size, 
                                    pooling_stride=pooling_stride, pooling_padding=pooling_padding, 
                                    conv_layers=conv_layers, input_channels=in_channels, 
-                                   output_channels=output_channels, in_planes=in_planes)
+                                   output_channels=embedding_dim, in_planes=in_planes)
         
+        self.class_embedding = nn.Parameter(data=torch.rand(1, 1, embedding_dim), requires_grad=True)
+        
+        self.attention_pool = nn.Linear(embedding_dim, 1)
+        
+        self.emb_dropout = nn.Dropout(p=emb_dropout)
+        
+        self.encoder = nn.Sequential(*[
+            EncoderBlock(embedding_dim=embedding_dim,
+                         num_heads=num_heads,
+                         mlp_size=mlp_size,
+                         mlp_dropout=mlp_dropout,
+                         msa_dropout=msa_dropout)
+            for _ in range(layers)
+        ])
+        
+        self.head = nn.Sequential(
+            nn.LayerNorm(normalized_shape=embedding_dim),
+            nn.Linear(in_features=embedding_dim,
+                      out_features=num_classes)
+        )
+        
+    def forward(self, x):
+        batch_size = x.shape[0]
+        
+        cls_token = self.class_embedding.expand(batch_size, -1, -1)
+        
+        x = self.tokenizer(x)
+        x = torch.cat((cls_token, x), dim=1)
+        x = self.emb_dropout(x)
+        x = self.encoder(x)
+        
+        x = x[:, 0] if self.seq_pool else torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2)
+        
+        x = self.head(x)
+        
+        return x
+    
+    
+class CvT_6(CvT):
+    def __init__(self,
+                 img_size: int=224, in_channels: int=3, kernel_size: int=7,
+                 layers: int=6, embedding_dim: int=192, mlp_size: int=768,
+                 num_heads: int=3, stride: int=2, padding: int=3,
+                 pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
+                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
+                 msa_dropout: float=0.0, mlp_dropout: float=0.1,
+                 emb_dropout: float=0.1, num_classes: int=10):
+        super().__init__(layers=layers,
+                         num_classes=num_classes)        
+    
+    
+class CvT_9(CvT):
+    def __init__(self,
+                 img_size: int=224, in_channels: int=3, kernel_size: int=7,
+                 layers: int=9, embedding_dim: int=192, mlp_size: int=768,
+                 num_heads: int=3, stride: int=2, padding: int=3,
+                 pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
+                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
+                 msa_dropout: float=0.0, mlp_dropout: float=0.1,
+                 emb_dropout: float=0.1, num_classes: int=10):
+        super().__init__(layers=layers,
+                         num_classes=num_classes)
+
+    
+class CvT_12(CvT):
+    def __init__(self,
+                 img_size: int=224, in_channels: int=3, kernel_size: int=7,
+                 layers: int=12, embedding_dim: int=192, mlp_size: int=768,
+                 num_heads: int=3, stride: int=2, padding: int=3,
+                 pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
+                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
+                 msa_dropout: float=0.0, mlp_dropout: float=0.1,
+                 emb_dropout: float=0.1, num_classes: int=10):
+        super().__init__(layers=layers,
+                         num_classes=num_classes)
         
