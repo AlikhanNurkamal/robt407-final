@@ -18,6 +18,13 @@ vit = ViT_Ti_32()
 # )
 
 
-tok = Tokenizer(kernel_size=7,stride=2,padding=3,n_conv_layers=2)
+tok = Tokenizer(kernel_size=7,stride=2,padding=3,n_conv_layers=2, in_planes=64, n_output_channels=64)
 
 print(tok(inp).shape)
+print(tok.sequence_length())
+
+""" config :
+
+kernel_size=7, stride=2, padding=3, n_convs=2, in_plane=64, out_channels=64             1, 196, 64
+
+"""
