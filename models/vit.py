@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 # convering image into embeddings
 class PatchEmbedding(nn.Module):
-    def __init__(self, in_channels: int=3, patch_size: int=16, embedding_dim: int=768):
+    def __init__(self, in_channels: int=3, patch_size: int=16, embedding_dim: int=192):
         super().__init__()
         # patches are extracted using convolution, 
         self.patches = nn.Conv2d(in_channels=in_channels,
@@ -26,7 +26,7 @@ class PatchEmbedding(nn.Module):
         
 # MultiHeadAttention Module
 class MSA(nn.Module):
-    def __init__(self, embedding_dim: int=768, num_heads: int=12, dropout: float=0):
+    def __init__(self, embedding_dim: int=192, num_heads: int=3, dropout: float=0):
         super().__init__()
         # layer normalization layer
         self.layer_norm = nn.LayerNorm(normalized_shape=embedding_dim)
@@ -48,8 +48,8 @@ class MSA(nn.Module):
 # MLP layer   
 class MLP(nn.Module):
     def __init__(self, 
-                 embedding_dim: int=768,
-                 mlp_size: int=3072,
+                 embedding_dim: int=192,
+                 mlp_size: int=768,
                  dropout: float=0.1):
         super().__init__()
         # layer normalization
@@ -73,9 +73,9 @@ class MLP(nn.Module):
 # Transformer encoder block
 class EncoderBlock(nn.Module):
     def __init__(self,
-                 embedding_dim: int=768,
-                 num_heads: int=12,
-                 mlp_size: int=3072,
+                 embedding_dim: int=192,
+                 num_heads: int=3,
+                 mlp_size: int=768,
                  mlp_dropout: float=0.1,
                  msa_dropout: float=0.0):
         super().__init__()
@@ -101,9 +101,9 @@ class ViT(nn.Module):
                  in_channels: int=3,
                  patch_size: int=16,
                  layers: int=12,
-                 embedding_dim: int=768,
-                 mlp_size: int=3072,
-                 num_heads: int=12,
+                 embedding_dim: int=192,
+                 mlp_size: int=768,
+                 num_heads: int=3,
                  msa_dropout: float=0.0,
                  mlp_dropout: float=0.1,
                  emb_dropout: float=0.1,
