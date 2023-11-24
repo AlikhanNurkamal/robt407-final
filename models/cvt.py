@@ -52,6 +52,7 @@ class CvT(nn.Module):
                  msa_dropout: float=0.0, mlp_dropout: float=0.1,
                  emb_dropout: float=0.1, num_classes: int=10):
         super().__init__()
+        self.seq_pool = seq_pool
         
         self.tokenizer = Tokenizer(kernel_size=kernel_size, stride=stride, 
                                    padding=padding, pooling_kernel_size=pooling_kernel_size, 
