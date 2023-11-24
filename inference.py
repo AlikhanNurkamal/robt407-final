@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 import argparse
 from tqdm import tqdm
@@ -7,6 +8,7 @@ from models.cnn import *
 
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
 from utils.utils import get_test_dataloader
 
 
@@ -14,31 +16,23 @@ def cnn_inference(test_loader, model, model_name, config):
     model.load_state_dict(torch.load(os.path.join(config['MODELS_DIR'], f'{model_name}_best_model.pth')))
     model.eval()
 
-    img_names = []
-    predictions = []
-
+    df = pd.DataFrame()
     with torch.no_grad():
         for data in tqdm(test_loader, desc='Inference'):
-            img_name, imgs = data
+            img_names, imgs = data
             imgs = imgs.to(config['DEVICE'])
 
             logits = model(imgs)
-            img_names.extend(img_name)
-            predictions.extend(logits.detach().cpu().numpy())
+            probas = F.softmax(logits, dim=1)
+
+            block = np.concatenate((np.array(img_names).reshape(-1, 1), probas.detach().cpu().numpy()), axis=1)
+            block = pd.DataFrame(block, columns=['img', 'c0', 'c1', 'c2',
+                                                 'c3', 'c4', 'c5',
+                                                 'c6', 'c7', 'c8',
+                                                 'c9'])
+            df = pd.concat((df, block), axis=0, ignore_index=True)
     
-    # below code is incorrect. should be fixed!
-
-    # convert predictions to columns to submit to kaggle
-    # columns = pd.get_dummies(predictions)
-    # res = pd.DataFrame({'img': img_names})
-    # res = pd.concat([res, columns], axis=1)
-    # res.rename(columns={0: 'c0', 1: 'c1', 2: 'c2',
-    #                     3: 'c3', 4: 'c4', 5: 'c5',
-    #                     6: 'c6', 7: 'c7', 8: 'c8',
-    #                     9: 'c9'}, inplace=True)
-    # res.replace({False: 0, True: 1}, inplace=True)
-
-    # return res
+    return df
 
 
 def rnn_inference():
