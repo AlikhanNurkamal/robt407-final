@@ -74,7 +74,7 @@ class EncoderBlock(nn.Module):
         return x
 
 
-# inspired by Compact Transformers paper (class token was not removed)
+# inspired by Compact Transformers paper (class token was removed, no positional embeddings)
 class Tokenizer(nn.Module):
     def __init__(self,
                  kernel_size: int=7, stride: int=2, padding: int=3,
@@ -115,11 +115,10 @@ class CvT(nn.Module):
                  layers: int=12, embedding_dim: int=192, mlp_size: int=768,
                  num_heads: int=3, stride: int=2, padding: int=3,
                  pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
-                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
+                 conv_layers: int=2, in_planes: int=64,
                  msa_dropout: float=0.0, mlp_dropout: float=0.1,
                  emb_dropout: float=0.1, num_classes: int=10):
         super().__init__()
-        self.seq_pool = seq_pool
         # embeddings (no positional embeddings are used in this model)
         self.tokenizer = Tokenizer(kernel_size=kernel_size, stride=stride, 
                                    padding=padding, pooling_kernel_size=pooling_kernel_size, 
@@ -167,7 +166,7 @@ class CvT_6(CvT):
                  layers: int=6, embedding_dim: int=192, mlp_size: int=768,
                  num_heads: int=3, stride: int=2, padding: int=3,
                  pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
-                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
+                 conv_layers: int=2, in_planes: int=64,
                  msa_dropout: float=0.0, mlp_dropout: float=0.1,
                  emb_dropout: float=0.1, num_classes: int=10):
         super().__init__(layers=layers,
@@ -180,7 +179,7 @@ class CvT_9(CvT):
                  layers: int=9, embedding_dim: int=192, mlp_size: int=768,
                  num_heads: int=3, stride: int=2, padding: int=3,
                  pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
-                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
+                 conv_layers: int=2, in_planes: int=64,
                  msa_dropout: float=0.0, mlp_dropout: float=0.1,
                  emb_dropout: float=0.1, num_classes: int=10):
         super().__init__(layers=layers,
@@ -193,7 +192,7 @@ class CvT_12(CvT):
                  layers: int=12, embedding_dim: int=192, mlp_size: int=768,
                  num_heads: int=3, stride: int=2, padding: int=3,
                  pooling_kernel_size: int=3, pooling_stride: int=2, pooling_padding :int=1,
-                 conv_layers: int=2, in_planes: int=64, seq_pool: bool=True,
+                 conv_layers: int=2, in_planes: int=64,
                  msa_dropout: float=0.0, mlp_dropout: float=0.1,
                  emb_dropout: float=0.1, num_classes: int=10):
         super().__init__(layers=layers,
