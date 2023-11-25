@@ -174,7 +174,7 @@ def parse_args():
 def main():
     args = parse_args()
     task = args.task
-    model_name = args.model
+    model_name = args.model_name
 
     if task == 1:
         if 'resnet50' in model_name:
