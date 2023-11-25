@@ -2,10 +2,76 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# Custom CNN architecture
+# Custom CNN architecture (VGG16-like)
 class customCNN(nn.Module):
-    def __init__(self):
-        pass
+    def __init__(self, in_channels=3, out_classes=10):
+        """
+        :param in_channels: number of input image channels
+        :param out_classes: number of output classes
+        """
+        super().__init__()
+
+        # the size of the feature maps will be 112x112x64 after the first conv layer
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1),  # (224 - 3 + 2*1) / 1 + 1 = 224
+            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # (224 - 2) / 2 + 1 = 112
+        )
+        # the size of the feature maps will be 56x56x128 after the second conv layer
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),  # (112 - 3 + 2*1) / 1 + 1 = 112
+            nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # (112 - 2) / 2 + 1 = 56
+        )
+        # the size of the feature maps will be 28x28x256 after the third conv layer
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),  # (56 - 3 + 2*1) / 1 + 1 = 56
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # (56 - 2) / 2 + 1 = 28
+        )
+        # the size of the feature maps will be 14x14x512 after the fourth conv layer
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),  # (28 - 3 + 2*1) / 1 + 1 = 28
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # (28 - 2) / 2 + 1 = 14
+        )
+        # the size of the feature maps will be 7x7x512 after the fifth conv layer
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),  # (14 - 3 + 2*1) / 1 + 1 = 14
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # (14 - 2) / 2 + 1 = 7
+        )
+        self.fc1 = nn.Linear(7 * 7 * 512, 512)
+        self.fc2 = nn.Linear(512, 256)
+        self.out = nn.Linear(256, out_classes)
+    
+    def forward(self, x):
+        x = self.conv1(x)  # (batch_size, 64, 112, 112)
+        x = self.conv2(x)  # (batch_size, 128, 56, 56)
+        x = self.conv3(x)  # (batch_size, 256, 28, 28)
+        x = self.conv4(x)  # (batch_size, 512, 14, 14)
+        x = self.conv5(x)  # (batch_size, 512, 7, 7)
+        
+        x = x.view(x.shape[0], -1)  # (batch_size, 512 * 7 * 7)
+        x = F.relu(self.fc1(x))  # (batch_size, 512)
+        x = F.relu(self.fc2(x))  # (batch_size, 256)
+        x = self.out(x)
+
+        return x
+
 
 # Block for ResNet50 and ResNet101 architectures
 class Block(nn.Module):
@@ -92,7 +158,7 @@ class MyResNet(nn.Module):
 
         # according to the paper, the last layer is avgpool with output size 1x1
         self.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
-        self.fc1 = nn.Linear(512 * 4, out_classes)
+        self.fc = nn.Linear(512 * 4, out_classes)
     
     def _make_layer(self, num_residual_blocks, in_channels, stride):
         """
@@ -134,7 +200,7 @@ class MyResNet(nn.Module):
         # last avgpool layer plus fully connected layer
         x = self.avgpool(x)
         x = x.view(x.shape[0], -1)
-        x = self.fc1(x)
+        x = self.fc(x)
 
         return x
 
@@ -147,4 +213,3 @@ def ResNet50(in_channels=3, out_classes=10):
 # in this project we have 10 classes to predict, so out_classes=10
 def ResNet101(in_channels=3, out_classes=10):
     return MyResNet(101, in_channels, out_classes=out_classes)
-
