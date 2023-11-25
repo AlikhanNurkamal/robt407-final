@@ -141,7 +141,7 @@ def run_rnn_training():
     pass
 
 
-def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=10, enable_cos=True):
+def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=config['WARMUP_EPOCHS'], enable_cos=True):
     lr = config['LR_INIT']
     if warmup and epoch < warmup_ep:
         lr = lr / (warmup_ep - epoch)
