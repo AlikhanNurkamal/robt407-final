@@ -126,10 +126,9 @@ class CvT(nn.Module):
                                    pooling_stride=pooling_stride, pooling_padding=pooling_padding, 
                                    conv_layers=conv_layers, input_channels=in_channels, 
                                    output_channels=embedding_dim, in_planes=in_planes)
-        # class token
-        self.class_embedding = nn.Parameter(data=torch.rand(1, 1, embedding_dim), requires_grad=True)
+    
         # pooling instead of making classification on class token
-        self.attention_pool = nn.Linear(embedding_dim, 1)  # should be + 1???
+        self.attention_pool = nn.Linear(embedding_dim, 1) 
         
         self.emb_dropout = nn.Dropout(p=emb_dropout)
         # transformer layers
@@ -151,14 +150,11 @@ class CvT(nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]
         
-        cls_token = self.class_embedding.expand(batch_size, -1, -1)  # class token
-        
         x = self.tokenizer(x)                                        # embeddings
-        x = torch.cat((cls_token, x), dim=1)                         # adding class token to embeddings
         x = self.emb_dropout(x)
         x = self.encoder(x)                                          # transformer layers
         
-        x = x[:, 0] if self.seq_pool else torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2) # mistake
+        x = torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2)
         
         x = self.head(x)
         
