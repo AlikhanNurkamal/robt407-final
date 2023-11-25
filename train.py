@@ -158,7 +158,7 @@ def save_graphs(train, valid, type='None'):
     plt.plot(valid,label="valid")
     plt.plot(train,label="train")
     plt.xlabel("Epoch")
-    plt.ylabel("{type}")
+    plt.ylabel(f"{type}")
     plt.legend()
     plt.savefig(f'{type}.png')
 
