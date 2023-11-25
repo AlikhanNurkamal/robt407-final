@@ -152,13 +152,13 @@ def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=config['WARMUP
         param_group['lr'] = lr
 
 
-def save_graphs(train, test, type='None'):
+def save_graphs(train, valid, type='None'):
     plt.figure(figsize=(10,5))
-    plt.title(f"Training and Test {type}")
-    plt.plot(test,label="test")
+    plt.title(f"Training and Validation {type}")
+    plt.plot(valid,label="valid")
     plt.plot(train,label="train")
     plt.xlabel("Epoch")
-    plt.ylabel("Loss")
+    plt.ylabel("{type}")
     plt.legend()
     plt.savefig(f'{type}.png')
 
