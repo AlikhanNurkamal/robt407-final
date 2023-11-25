@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-#from models.vit import MSA, MLP, EncoderBlock
-
-
        
 # MultiHeadAttention Module
 class MSA(nn.Module):
@@ -47,7 +44,7 @@ class MLP(nn.Module):
                 nn.Dropout(p=dropout))
         
     def forward(self, x):
-        x = self.layer_norm(x)
+        x = self.layer_norm(x) 
         x = self.mlp(x)
         
         return x
@@ -77,7 +74,7 @@ class EncoderBlock(nn.Module):
         return x
 
 
-# taken from CVT-CCT paper
+# inspired by Compact Transformers paper (class token was not removed)
 class Tokenizer(nn.Module):
     def __init__(self,
                  kernel_size: int=7, stride: int=2, padding: int=3,
@@ -85,26 +82,23 @@ class Tokenizer(nn.Module):
                  conv_layers: int=2, input_channels: int=3, 
                  output_channels: int=64, in_planes: int=64):
         super().__init__()
-
-        self.conv1 = nn.Conv2d(input_channels, in_planes,
+        # first convolutional layer
+        self.conv1 = nn.Conv2d(input_channels, in_planes,                  
                                kernel_size=(kernel_size, kernel_size),
                                stride=(stride, stride),
                                padding=(padding, padding), bias=False)
-        
+        # max pooling layer
         self.max_pool = nn.MaxPool2d(kernel_size=pooling_kernel_size,
                                      stride=pooling_stride,
                                      padding=pooling_padding)
-        
+        # second convolutional layer
         self.conv2 = nn.Conv2d(in_planes, output_channels,
                                kernel_size=(kernel_size, kernel_size),
                                stride=(stride, stride),
                                padding=(padding, padding), bias=False)
-
+        # make embeddings
         self.flatten = nn.Flatten(start_dim=2, end_dim=3)
         
-    def sequence_length(self, n_channels=3, height=224, width=224):               # acts similarly to number of patches 
-        return self.forward(torch.zeros((1, n_channels, height, width))).shape[1]
-
     def forward(self, x):
         x = self.conv1(x)
         x = self.max_pool(x)
@@ -126,19 +120,19 @@ class CvT(nn.Module):
                  emb_dropout: float=0.1, num_classes: int=10):
         super().__init__()
         self.seq_pool = seq_pool
-        
+        # embeddings (no positional embeddings are used in this model)
         self.tokenizer = Tokenizer(kernel_size=kernel_size, stride=stride, 
                                    padding=padding, pooling_kernel_size=pooling_kernel_size, 
                                    pooling_stride=pooling_stride, pooling_padding=pooling_padding, 
                                    conv_layers=conv_layers, input_channels=in_channels, 
                                    output_channels=embedding_dim, in_planes=in_planes)
-        
+        # class token
         self.class_embedding = nn.Parameter(data=torch.rand(1, 1, embedding_dim), requires_grad=True)
-        
-        self.attention_pool = nn.Linear(embedding_dim, 1)
+        # pooling instead of making classification on class token
+        self.attention_pool = nn.Linear(embedding_dim, 1)  # should be + 1???
         
         self.emb_dropout = nn.Dropout(p=emb_dropout)
-        
+        # transformer layers
         self.encoder = nn.Sequential(*[
             EncoderBlock(embedding_dim=embedding_dim,
                          num_heads=num_heads,
@@ -147,7 +141,7 @@ class CvT(nn.Module):
                          msa_dropout=msa_dropout)
             for _ in range(layers)
         ])
-        
+        # classification head
         self.head = nn.Sequential(
             nn.LayerNorm(normalized_shape=embedding_dim),
             nn.Linear(in_features=embedding_dim,
@@ -157,20 +151,20 @@ class CvT(nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]
         
-        cls_token = self.class_embedding.expand(batch_size, -1, -1)
+        cls_token = self.class_embedding.expand(batch_size, -1, -1)  # class token
         
-        x = self.tokenizer(x)
-        x = torch.cat((cls_token, x), dim=1)
+        x = self.tokenizer(x)                                        # embeddings
+        x = torch.cat((cls_token, x), dim=1)                         # adding class token to embeddings
         x = self.emb_dropout(x)
-        x = self.encoder(x)
+        x = self.encoder(x)                                          # transformer layers
         
-        x = x[:, 0] if self.seq_pool else torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2)
+        x = x[:, 0] if self.seq_pool else torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2) # mistake
         
         x = self.head(x)
         
         return x
     
-    
+# the only difference is number of layers  
 class CvT_6(CvT):
     def __init__(self,
                  img_size: int=224, in_channels: int=3, kernel_size: int=7,
