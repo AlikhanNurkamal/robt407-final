@@ -1,6 +1,6 @@
 # Description: Configuration file for the project
 # Author: Alikhan Nurkamal, Nail Fakhrutdinov
-# Last Modified: 2023-11-24
+# Last Modified: 2023-11-25
 import torch
 
 # Config variables
