@@ -50,7 +50,7 @@ class Block(nn.Module):
             identity = self.identity_downsample(identity)
         
         # add the identity (input image) to the output of the block
-        x += identity
+        x = x + identity
         x = F.relu(x)
         return x
 
