@@ -12,7 +12,7 @@ config = {
     'BATCH_SIZE': 64,
     'EPOCHS': 100,
     'PATIENCE': 9,
-    'LR_INIT': 3e-3,
+    'LR_INIT': 1e-4,
     'WEIGHT_DECAY': 5e-4,
     'NUM_CLASSES': 10,
     'NUM_WORKERS': 4,
