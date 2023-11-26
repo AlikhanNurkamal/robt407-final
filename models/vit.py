@@ -187,3 +187,41 @@ class ViT_Ti_32(ViT):
                          layers=layers,
                          num_classes=num_classes)
         
+   
+
+# ViT_Lite16 configuration   
+class ViT_Lite_16(ViT):
+    def __init__(self,
+                 img_size: int=224,
+                 in_channels: int=3,
+                 patch_size: int=16,
+                 layers: int=7,
+                 embedding_dim: int=256,
+                 mlp_size: int=512,
+                 num_heads: int=4,
+                 msa_dropout: float=0.0,
+                 mlp_dropout: float=0.1,
+                 emb_dropout: float=0.1,
+                 num_classes: int=10):
+        super().__init__(patch_size=patch_size,
+                         layers=layers,
+                         num_classes=num_classes)
+     
+
+# ViT_Lite32 configuration   
+class ViT_Lite_32(ViT):
+    def __init__(self,
+                 img_size: int=224,
+                 in_channels: int=3,
+                 patch_size: int=32,
+                 layers: int=7,
+                 embedding_dim: int=256,
+                 mlp_size: int=512,
+                 num_heads: int=4,
+                 msa_dropout: float=0.0,
+                 mlp_dropout: float=0.1,
+                 emb_dropout: float=0.1,
+                 num_classes: int=10):
+        super().__init__(patch_size=patch_size,
+                         layers=layers,
+                         num_classes=num_classes)
