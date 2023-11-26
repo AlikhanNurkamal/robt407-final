@@ -14,3 +14,9 @@ python3 train.py --task 1 --model_name resnet50
 
 ## Training Results
 In the “Training Results” directory, each model’s subfolder contains its training code, results, accuracy, F1, loss graphs, and a .csv submission file.
+```
+Training Results │
+└───Model 1 │ │ Accuracy Graph │ │ F1 Score Graph │ │ Loss Graph │ │ Submission.csv │ │ Training Code │
+└───Model 2 │ │ Accuracy Graph │ │ F1 Score Graph │ │ Loss Graph │ │ Submission.csv │ │ Training Code │
+└───Model 3 │ Accuracy Graph │ F1 Score Graph │ Loss Graph │ Submission.csv │ Training Code
+```
