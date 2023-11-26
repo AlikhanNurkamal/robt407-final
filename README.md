@@ -11,3 +11,7 @@ In order to train a model, run the following script
 ```
 python3 train.py --task 1 --model_name resnet50
 ```
+
+## Training Results
+Training Results │ └───Model 1 │ │ Accuracy Graph │ │ F1 Score Graph │ │ Loss Graph │ │ Submission.csv │ │ Training Code │
+└───Model 2 │ │ Accuracy Graph │ │ F1 Score Graph │ │ Loss Graph │ │ Submission.csv │ │ Training Code │
