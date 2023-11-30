@@ -12,7 +12,7 @@ from torch.nn import functional as F
 from utils.utils import get_test_dataloader
 
 
-def cnn_inference(test_loader, model, model_name, config):
+def inference(test_loader, model, model_name, config):
     model.load_state_dict(torch.load(os.path.join(config['MODELS_DIR'], f'{model_name}_best_model.pth')))
     model.eval()
 
@@ -33,10 +33,6 @@ def cnn_inference(test_loader, model, model_name, config):
             df = pd.concat((df, block), axis=0, ignore_index=True)
     
     return df
-
-
-def rnn_inference():
-    pass
 
 
 def parse_args():
@@ -69,7 +65,7 @@ def main():
     test_loader = get_test_dataloader()
     
     # this csv file will be submitted to kaggle
-    result = cnn_inference(test_loader, model, model_name, config)
+    result = inference(test_loader, model, model_name, config)
     result.to_csv('result.csv', index=False)
 
 
