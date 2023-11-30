@@ -7,7 +7,7 @@ import torch
 config = {
     'TRAIN_DIR': 'data/train/',
     'TEST_DIR': 'data/test/',
-    'MODELS_DIR': 'models/',
+    'MODELS_DIR': 'model_weights/',
     'IMG_SIZE': 224,
     'BATCH_SIZE': 64,
     'EPOCHS': 100,
