@@ -41,40 +41,36 @@ def rnn_inference():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--task', type=int, required=True,
-                        help='Task number. 1 for Distracted Driver Detection, 2 for Quora Insincere Questions Classification')
-    parser.add_argument('--model_name', type=str, required=True, help='Model name')
+    parser.add_argument('--images_dir', type=str, required=True,
+                        help='Directory of test images.')
+    parser.add_argument('--model_name', type=str, required=True, help='Model name.')
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    task = args.task
+    images_dir = args.images_dir
     model_name = args.model_name
 
-    if task == 1:
-        if 'resnet50' in model_name:
-            model = ResNet50()
-            model_name = 'resnet50'
-        elif 'resnet101' in model_name:
-            model = ResNet101()
-            model_name = 'resnet101'
-        elif 'custom' in model_name:
-            model = customCNN()
-            model_name = 'custom'
-        else:
-            raise NotImplementedError('unknown architecture')
-
-        model = model.to(config['DEVICE'])
-        test_loader = get_test_dataloader()
-        
-        # this csv file will be submitted to kaggle
-        result = cnn_inference(test_loader, model, model_name, config)
-        result.to_csv('result.csv', index=False)
-    elif task == 2:
-        pass
+    if 'resnet50' in model_name:
+        model = ResNet50()
+        model_name = 'resnet50'
+    elif 'resnet101' in model_name:
+        model = ResNet101()
+        model_name = 'resnet101'
+    elif 'custom' in model_name:
+        model = customCNN()
+        model_name = 'custom'
     else:
-        raise Exception('unknown task')
+        raise NotImplementedError('unknown architecture')
+
+    model = model.to(config['DEVICE'])
+    config['TEST_DIR'] = images_dir
+    test_loader = get_test_dataloader()
+    
+    # this csv file will be submitted to kaggle
+    result = cnn_inference(test_loader, model, model_name, config)
+    result.to_csv('result.csv', index=False)
 
 
 if __name__ == '__main__':
