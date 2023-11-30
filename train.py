@@ -1,7 +1,6 @@
 import argparse
 import math
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 from config import config
@@ -80,7 +79,7 @@ def evaluate(val_loader, model, loss_fn):
     return avg_loss, accuracy, precision, recall, f1
 
 
-def run_cnn_training(train_loader, val_loader, model, model_name, loss_fn, optimizer, config):
+def run_training(train_loader, val_loader, model, model_name, loss_fn, optimizer, config):
     TRAIN_HISTORY = {
         'Loss': [],
         'Accuracy': [],
@@ -137,10 +136,6 @@ def run_cnn_training(train_loader, val_loader, model, model_name, loss_fn, optim
     return TRAIN_HISTORY, VAL_HISTORY
 
 
-def run_rnn_training():
-    pass
-
-
 def adjust_learning_rate(optimizer, epoch, warmup=True, warmup_ep=config['WARMUP_EPOCHS'], enable_cos=True):
     lr = config['LR_INIT']
     if warmup and epoch < warmup_ep:
@@ -192,7 +187,7 @@ def main():
                                     weight_decay=config['WEIGHT_DECAY'])
     
     train_loader, val_loader = get_dataloaders()
-    run_cnn_training(train_loader, val_loader, model, model_name, criterion, optimizer, config)
+    run_training(train_loader, val_loader, model, model_name, criterion, optimizer, config)
     
     # Memory consumtion, training time??
 
