@@ -3,8 +3,8 @@ This repository contains the final project for the course ROBT407 - Machine Lear
 
 ## Models
 In this project, we implemented
-1. ResNet (50 and 101) architecture as well as custom CNN model (VGG16-like) to detect distracted drivers from images,
-2. ... (RNN model) to classify Quora insincere questions.
+1. ResNet (50 and 101) architecture as well as custom CNN model (VGG16-like)
+2. ViT-lite as well as CVT (Compact Convolutional Transformer) to detect distracted drivers from images.
 
 ## Training
 In order to train a model, run the following script
