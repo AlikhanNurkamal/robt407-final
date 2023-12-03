@@ -42,7 +42,7 @@ Images
 ## Results
 You can see our results (Kaggle competition scores) below:
 - CVT
-![alt text](https://drive.google.com/uc?export=view&id=1R3ZmrjUE3Nlq1FE9aKg3jPWUmzNsJBhe)
+![alt text](https://drive.google.com/uc?export=view&id=12sTzy9kmr7NOcLmEINFNRg1RtW45rcMa)
 - ViT lite
 ![alt text](https://drive.google.com/uc?export=view&id=1BbQXw20cGIOn1fl0J0DTmweziigaOdFd)
 - Resnet
