@@ -24,3 +24,17 @@ Trainnig Results
 │   ├── submission.csv
 │   └── Training code
 ```
+
+## Inference
+There is also an inference code provided so that you can test pretrained models on your own dataset. First, download pretrained weights via this [link](https://drive.google.com/drive/folders/1Tcb2s1_tBHjh2VSAn2qgDPl_a0bnjBSk?usp=sharing), store them in the directory "model_weights", and run
+```
+python3 inference.py --images_dir dir_to_test_images --model_name your_desired_model
+```
+The directory of test images should look like this:
+```
+Images
+├── img1.jpg
+├── img2.jpg
+├── img3.jpg
+├── ...
+```
