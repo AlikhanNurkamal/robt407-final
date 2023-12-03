@@ -38,3 +38,7 @@ Images
 ├── img3.jpg
 ├── ...
 ```
+
+## Results
+You can see our results (Kaggle competition scores) below:
+![alt text](https://drive.google.com/file/d/1R3ZmrjUE3Nlq1FE9aKg3jPWUmzNsJBhe/view?usp=sharing)
